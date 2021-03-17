@@ -111,12 +111,14 @@ const CreateNew = (props) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    console.log('TULEEKO HANDLESUBMITTIIN')
     props.addNew({
       content,
       author,
       info,
       votes: 0
     })
+
   }
 
   return (
@@ -142,6 +144,20 @@ const CreateNew = (props) => {
 
 }
 
+//Tällä muotoillaan notificaatio lisämiseen yhteyteen
+const NewAddedAnecdotesNotification = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className="added">
+      {message}
+    </div>
+
+  )
+}
+
 const App = () => {
   const [anecdotes, setAnecdotes] = useState([
     {
@@ -160,13 +176,24 @@ const App = () => {
     }
   ])
 
-  const [notification, setNotification] = useState('')
+  const [notification, setNotification] = useState(null)
 
+  //Uuden anecdootin lisäämisen jälkeen tehdään redirect "/anecdotes"-pathiin
+  //Ks. alla return:sta redirect -tägi--> jos notificaatio tilassa joku muu kuin null
+  //näytetään/redirectataan "/anecdotes"
   const addNew = (anecdote) => {
+    //console.log('MILLOIN KÄY addNew:ssä')
     anecdote.id = (Math.random() * 10000).toFixed(0)
+    console.log('ANECDOTES TAULUKON KOKO ENNEN', anecdotes.length)
     setAnecdotes(anecdotes.concat(anecdote))
-  }
+    setNotification('Uusi anecdote "' + anecdote.content + '" lisätty')
 
+    setTimeout(() => {
+      setNotification(null)
+    }, 5000)
+  }
+  console.log('ANECDOTES TAULUKON KOKO JÄLKEEN', anecdotes.length)
+  console.log('ANECDOTES NOTIFICAATIO', notification)
   //"routeMatch":n käyttö, kun halutaan käyttää yksittäisen anecdootin
   //etsiminen ID:n perusteella ennen komponentille lähettämistä
   const match = useRouteMatch('/anecdotes/:id')
@@ -199,6 +226,7 @@ const App = () => {
     <div>
       <h1>Software anecdotes</h1>
       <Menu />
+      <NewAddedAnecdotesNotification message={notification} />
       <Switch>
         <Route path="/anecdotes/:id">
           <AnecdoteSingleId anecdote={anecdote} />
@@ -207,7 +235,7 @@ const App = () => {
           <AnecdoteList anecdotes={anecdotes} />
         </Route>
         <Route path="/create">
-          <CreateNew addNew={addNew} />
+          {!notification ? <CreateNew addNew={addNew} /> : <Redirect to="/anecdotes" />}
         </Route>
         <Route path="/about">
           <About />
