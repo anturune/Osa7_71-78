@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 import ReactDOM from 'react-dom'
+//Router eristetty "index.js" -fileen
 import {
   BrowserRouter as Router,
   Switch,
@@ -9,6 +10,7 @@ import {
   Redirect,
   useParams,
   useHistory,
+  useRouteMatch,
 } from "react-router-dom"
 
 //Menu näytetään joka paikassa ja niille annetaan oma uniikki polku selaimeen
@@ -20,20 +22,64 @@ const Menu = () => {
   return (
     <div>
       <Link to='/anecdotes' style={padding}>anecdotes</Link>
-      <Link to='create' style={padding}>create new</Link>
-      <Link to='about' style={padding}>about</Link>
+      <Link to='/create' style={padding}>create new</Link>
+      <Link to='/about' style={padding}>about</Link>
     </div>
   )
 }
 
+/*
+//Näin haetaan yksittäinen anekdootti ID:n perusteella, kun ei käytetä "useRouteMatch":a
+//Yksittäisen anecdootin näyttäminen id:llä hakien
+//useParams:ll saadaan id
+const Anecdote = ({ anecdotes }) => {
+  console.log('TULIKO Anecdote KOMPONENTTIIN', anecdotes)
+  //Tässä käytetään importattua "useParams":a, jolla saadaan näytettävä anecdoten id
+  const id = useParams().id
+  console.log('ID', id)
+  //HUOM! Muutetaan id numeroksi
+  const anecdote = anecdotes.find(a => a.id === id)
+  console.log('ANEKDOOTTI ', anecdote)
+  return (
+    <div>
+      <h2>{anecdote.content}</h2>
+      <div>has{anecdote.votes}  votes </div>
+      <div>for more info see: {anecdote.info}</div>
+      <Link to={'/' + anecdote.info}>for more info see: {anecdote.info}</Link>
+
+    </div>
+  )
+}
+*/
+
+//Luodaan linkit jokaiselle anekdootille ja personoidaan URI:t ancdote ID:llä
 const AnecdoteList = ({ anecdotes }) => (
   <div>
     <h2>Anecdotes</h2>
     <ul>
-      {anecdotes.map(anecdote => <li key={anecdote.id} >{anecdote.content}</li>)}
+      {anecdotes.map(anecdote =>
+        <li key={anecdote.id} >
+          <Link to={`/anecdotes/${anecdote.id}`}>{anecdote.content}</Link>
+        </li>
+      )}
     </ul>
   </div>
 )
+
+//Näin haetaan yksittäinen anekdootti ID:n perusteella, kun käytetään "useRouteMatch":a
+//Luodaan linkit jokaiselle anekdootille ja personoidaan URI:t ancdote ID:llä
+const AnecdoteSingleId = ({ anecdote }) => {
+  console.log('ANEKDOOTTI ', anecdote)
+  return (
+    <div>
+      <h2>{anecdote.content}</h2>
+      <div>has{anecdote.votes}  votes </div>
+      <div>for more info see: {anecdote.info}</div>
+      <Link to={'/' + anecdote.info}>for more info see: {anecdote.info}</Link>
+    </div>
+  )
+}
+
 
 const About = () => (
   <div>
@@ -121,6 +167,14 @@ const App = () => {
     setAnecdotes(anecdotes.concat(anecdote))
   }
 
+  //"routeMatch":n käyttö, kun halutaan käyttää yksittäisen anecdootin
+  //etsiminen ID:n perusteella ennen komponentille lähettämistä
+  const match = useRouteMatch('/anecdotes/:id')
+  const anecdote = match
+    ? anecdotes.find(a => a.id === match.params.id)
+    : null
+
+  /*
   const anecdoteById = (id) =>
     anecdotes.find(a => a.id === id)
 
@@ -134,15 +188,21 @@ const App = () => {
 
     setAnecdotes(anecdotes.map(a => a.id === id ? voted : a))
   }
+    */
 
   //Luodaan Router ja niille Route -lapset sekä Switchit
+  //HUOM! Käytettäessä useRouteMatch:a pitää siirtää Router tägi ulkopuolelle,
+  //tässä siirretty "index.js"-fileen
   //HUOM! <Menu/> tag ulkopuolella routejen, koska pitää olla näkyvillä
   //joka paikassa. Samaten <Footer/> ulkopuolella routejen samasta syystä
   return (
-    <Router>
+    <div>
       <h1>Software anecdotes</h1>
       <Menu />
       <Switch>
+        <Route path="/anecdotes/:id">
+          <AnecdoteSingleId anecdote={anecdote} />
+        </Route>
         <Route path="/anecdotes">
           <AnecdoteList anecdotes={anecdotes} />
         </Route>
@@ -158,10 +218,9 @@ const App = () => {
       </Switch>
 
       <div>
-
         <Footer />
       </div>
-    </Router >
+    </div>
   )
 }
 
