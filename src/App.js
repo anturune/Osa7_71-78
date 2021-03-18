@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 
 import ReactDOM from 'react-dom'
+//Custom hookin importti ks. "/src/hooks/index.js"
+import { useField } from './hooks'
 //Router eristetty "index.js" -fileen
 import {
   BrowserRouter as Router,
@@ -59,7 +61,7 @@ const AnecdoteList = ({ anecdotes }) => (
     <ul>
       {anecdotes.map(anecdote =>
         <li key={anecdote.id} >
-          <Link to={`/anecdotes/${anecdote.id}`}>{anecdote.content}</Link>
+          <Link to={`/anecdotes/${anecdote.id}`}>{anecdote.content.value}</Link>
         </li>
       )}
     </ul>
@@ -72,10 +74,10 @@ const AnecdoteSingleId = ({ anecdote }) => {
   console.log('ANEKDOOTTI ', anecdote)
   return (
     <div>
-      <h2>{anecdote.content}</h2>
+      <h2>{anecdote.content.value}</h2>
       <div>has{anecdote.votes}  votes </div>
-      <div>for more info see: {anecdote.info}</div>
-      <Link to={'/' + anecdote.info}>for more info see: {anecdote.info}</Link>
+      <div>for more info see: {anecdote.info.value}</div>
+      <Link to={'/' + anecdote.info.value}>for more info see: {anecdote.info.value}</Link>
     </div>
   )
 }
@@ -104,9 +106,18 @@ const Footer = () => (
 )
 
 const CreateNew = (props) => {
+  /*
   const [content, setContent] = useState('')
   const [author, setAuthor] = useState('')
   const [info, setInfo] = useState('')
+*/
+
+  //KÄytettäessä custom hookieta tehdään tällaiset muuttujat
+  //Ks.  "import { useField } from './hooks'
+  //HUOM! Annetaan datan tyyppi eli tässä "text"
+  const content = useField('text')
+  const author = useField('text')
+  const info = useField('text')
 
 
   const handleSubmit = (e) => {
@@ -118,24 +129,31 @@ const CreateNew = (props) => {
       info,
       votes: 0
     })
-
+    /*
+    console.log('CONTENT VALUE', content.value)
+    console.log('CONTENT AUTHOR', author.value)
+    console.log('CONTENT INFO', info.value)
+    */
   }
-
+  //Kun käytetään kenttien täyttämiseen custom hookeja, return muuttuu näin
+  //Ks. "/src/hooks/index.js"
+  //HUOM! Esimerkin vuoksi kaksi tapaa spread funktio jolloin tarvitaan vain "{...content}",
+  //mutta jos ei spread syntaksi, niin silloin ks. alla urlin luominen
   return (
     <div>
       <h2>create a new anecdote</h2>
       <form onSubmit={handleSubmit}>
         <div>
           content
-          <input name='content' value={content} onChange={(e) => setContent(e.target.value)} />
+          <input {...content} />
         </div>
         <div>
           author
-          <input name='author' value={author} onChange={(e) => setAuthor(e.target.value)} />
+          <input {...author} />
         </div>
         <div>
           url for more info
-          <input name='info' value={info} onChange={(e) => setInfo(e.target.value)} />
+          <input type={info.type} name='info' value={info.value} onChange={info.onChange} />
         </div>
         <button>create</button>
       </form>
@@ -144,6 +162,30 @@ const CreateNew = (props) => {
 
 }
 
+/*
+return (
+  <div>
+    <h2>create a new anecdote</h2>
+    <form onSubmit={handleSubmit}>
+      <div>
+        content
+        <input name='content' value={content} onChange={(e) => setContent(e.target.value)} />
+      </div>
+      <div>
+        author
+        <input name='author' value={author} onChange={(e) => setAuthor(e.target.value)} />
+      </div>
+      <div>
+        url for more info
+        <input name='info' value={info} onChange={(e) => setInfo(e.target.value)} />
+      </div>
+      <button>create</button>
+    </form>
+  </div>
+)
+
+}
+*/
 //Tällä muotoillaan notificaatio lisämiseen yhteyteen
 const NewAddedAnecdotesNotification = ({ message }) => {
   if (message === null) {
@@ -161,17 +203,31 @@ const NewAddedAnecdotesNotification = ({ message }) => {
 const App = () => {
   const [anecdotes, setAnecdotes] = useState([
     {
-      content: 'If it hurts, do it more often',
-      author: 'Jez Humble',
-      info: 'https://martinfowler.com/bliki/FrequencyReducesDifficulty.html',
-      votes: 0,
+      content: {
+        value: 'If it hurts, do it more often'
+      },
+      author: {
+        value: 'Jez Humble'
+      },
+      info: {
+        value: 'https://martinfowler.com/bliki/FrequencyReducesDifficulty.html'
+      },
+      votes: 0
+      ,
       id: '1'
     },
     {
-      content: 'Premature optimization is the root of all evil',
-      author: 'Donald Knuth',
-      info: 'http://wiki.c2.com/?PrematureOptimization',
-      votes: 0,
+      content: {
+        value: 'Premature optimization is the root of all evil'
+      },
+      author: {
+        value: 'Donald Knuth'
+      },
+      info: {
+        value: 'http://wiki.c2.com/?PrematureOptimization'
+      },
+      votes: 0
+      ,
       id: '2'
     }
   ])
@@ -182,11 +238,12 @@ const App = () => {
   //Ks. alla return:sta redirect -tägi--> jos notificaatio tilassa joku muu kuin null
   //näytetään/redirectataan "/anecdotes"
   const addNew = (anecdote) => {
-    //console.log('MILLOIN KÄY addNew:ssä')
+
     anecdote.id = (Math.random() * 10000).toFixed(0)
     console.log('ANECDOTES TAULUKON KOKO ENNEN', anecdotes.length)
     setAnecdotes(anecdotes.concat(anecdote))
-    setNotification('Uusi anecdote "' + anecdote.content + '" lisätty')
+    setNotification('Uusi anecdote "' + anecdote.content.value + '" lisätty')
+    console.log('MILLOIN KÄY addNew:ssä', anecdote)
 
     setTimeout(() => {
       setNotification(null)
