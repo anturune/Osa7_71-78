@@ -110,59 +110,7 @@ const CreateNew = (props) => {
   const [content, setContent] = useState('')
   const [author, setAuthor] = useState('')
   const [info, setInfo] = useState('')
-*/
-
-  //KÄytettäessä custom hookieta tehdään tällaiset muuttujat
-  //Ks.  "import { useField } from './hooks'
-  //HUOM! Annetaan datan tyyppi eli tässä "text"
-  const content = useField('text')
-  const author = useField('text')
-  const info = useField('text')
-
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    console.log('TULEEKO HANDLESUBMITTIIN')
-    props.addNew({
-      content,
-      author,
-      info,
-      votes: 0
-    })
-    /*
-    console.log('CONTENT VALUE', content.value)
-    console.log('CONTENT AUTHOR', author.value)
-    console.log('CONTENT INFO', info.value)
-    */
-  }
-  //Kun käytetään kenttien täyttämiseen custom hookeja, return muuttuu näin
-  //Ks. "/src/hooks/index.js"
-  //HUOM! Esimerkin vuoksi kaksi tapaa spread funktio jolloin tarvitaan vain "{...content}",
-  //mutta jos ei spread syntaksi, niin silloin ks. alla urlin luominen
-  return (
-    <div>
-      <h2>create a new anecdote</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          content
-          <input {...content} />
-        </div>
-        <div>
-          author
-          <input {...author} />
-        </div>
-        <div>
-          url for more info
-          <input type={info.type} name='info' value={info.value} onChange={info.onChange} />
-        </div>
-        <button>create</button>
-      </form>
-    </div>
-  )
-
-}
-
-/*
+  /*
 return (
   <div>
     <h2>create a new anecdote</h2>
@@ -186,6 +134,82 @@ return (
 
 }
 */
+  //-----------------------CUSTOM HOOKIET ALKAA-------------------------------------------
+  //KÄytettäessä custom hookieta tehdään tällaiset muuttujat
+  //Ks.  "import { useField } from './hooks'
+  //HUOM! Annetaan datan tyyppi eli tässä "text"
+  const content = useField('text')
+  const author = useField('text')
+  const info = useField('text')
+
+
+
+  console.log('CONTENT:', content)
+
+  //console.log('author', authori)
+  //console.log('info', infoa)
+
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    //console.log('TULEEKO HANDLESUBMITTIIN')
+    props.addNew({
+      content,
+      author,
+      info,
+      votes: 0
+    })
+    /*
+    console.log('CONTENT VALUE', content.value)
+    console.log('CONTENT AUTHOR', author.value)
+    console.log('CONTENT INFO', info.value)
+    */
+  }
+
+
+  //Kenttien resetoimiseen eli kun on kirjoitettu jotain mihin tahansa kenttään,
+  //ne voidaa tyhjätä reset -buttonilla
+  //Tähän liittyvä custom hook laajennus "/src/hooks/index.js" fielssä ja "const reset"
+  //funktiossa
+  const resetClick = () => {
+    console.log('RESET CLICKIIN TULI', content.value, content.reset)
+    content.reset()
+    author.reset()
+    info.reset()
+  }
+  console.log('TÄnnekö sitten')
+
+  //Kun käytetään kenttien täyttämiseen custom hookeja, return muuttuu näin
+  //Ks. "/src/hooks/index.js"
+  //HUOM! Esimerkin vuoksi kaksi tapaa spread funktio jolloin tarvitaan vain "{...content}",
+  //mutta jos ei spread syntaksi, niin silloin ks. alla urlin luominen
+  //HUOM! Kun saman input tagin sisällä kaksi buttonia, typet pitää määritellä
+
+  return (
+    <div>
+      <h2>create a new anecdote</h2>
+      <form onSubmit={handleSubmit}>
+        <div>
+          content
+          <input {...content} />
+        </div>
+        <div>
+          author
+          <input {...author} />
+        </div>
+        <div>
+          url for more info
+          <input {...info} />
+        </div>
+        <button type='submit'>create</button>
+        <button type='button' onClick={resetClick}>reset</button>
+      </form>
+    </div>
+  )
+
+}
+//-----------------------CUSTOM HOOKIET LOPPUU-------------------------------------------
+
 //Tällä muotoillaan notificaatio lisämiseen yhteyteen
 const NewAddedAnecdotesNotification = ({ message }) => {
   if (message === null) {
@@ -240,7 +264,7 @@ const App = () => {
   const addNew = (anecdote) => {
 
     anecdote.id = (Math.random() * 10000).toFixed(0)
-    console.log('ANECDOTES TAULUKON KOKO ENNEN', anecdotes.length)
+    //console.log('ANECDOTES TAULUKON KOKO ENNEN', anecdotes.length)
     setAnecdotes(anecdotes.concat(anecdote))
     setNotification('Uusi anecdote "' + anecdote.content.value + '" lisätty')
     console.log('MILLOIN KÄY addNew:ssä', anecdote)
@@ -249,8 +273,10 @@ const App = () => {
       setNotification(null)
     }, 5000)
   }
+  /*
   console.log('ANECDOTES TAULUKON KOKO JÄLKEEN', anecdotes.length)
   console.log('ANECDOTES NOTIFICAATIO', notification)
+  */
   //"routeMatch":n käyttö, kun halutaan käyttää yksittäisen anecdootin
   //etsiminen ID:n perusteella ennen komponentille lähettämistä
   const match = useRouteMatch('/anecdotes/:id')
